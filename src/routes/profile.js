@@ -2,45 +2,66 @@ const express = require("express");
 const profileRouter = express.Router();
 
 const { userAuth } = require("../middlewares/Auth")
-const {UserModel} = require("../models/User");
+const { UserModel } = require("../models/User");
+const { isValidEditData } = require("../utils/validate");
+const bcrypt = require("bcrypt");
 
 
-profileRouter.get("/profile", userAuth ,async (req,res)=>{
-    try{
+profileRouter.get("/profile/view", userAuth, async (req, res) => {
+    try {
         const user = req.user;
         res.send(user);
     }
-    catch(err){
+    catch (err) {
         res.status(400).send("Something is wrong" + err.message);
     }
 })
 
-profileRouter.patch("/profile/:userId",async(req,res)=>{
+profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
+    try {
+        (isValidEditData(req))
+
+        const newData = req.body;
+        const user = req.user;
+
+        Object.keys(newData).forEach((key) => (user[key] = newData[key]));
+
+        await user.save();
+
+        res.send("User Updated")
+
+    }
+    catch (err) {
+        res.status(400).send("Error : " + err.message);
+    }
+
+})
+
+profileRouter.post("/profile/password",userAuth,async(req,res)=>{
     try{
-        const userId = req.params?.userId;
-
-        const data = req.body;
-
-        const ALLOWED_UPDATES = ["firstName","phototUrl","gender","age","skills"];
-
-        const isUpdatedAllowed = Object.keys(data).every((k)=> ALLOWED_UPDATES.includes(k));
-
-        if(!isUpdatedAllowed){
-            throw new Error("Update not Allowed");
+        const oldPassword = req.body?.oldPassword ;
+        if(!oldPassword){
+            throw new Error("Enter Something First")
         }
+        const user = await req.user;
 
-        if(data?.skills?.length>10){
-            throw new Error("Skills cannot more than 10");
+        const isPassWordCorrect = await user.validatePassword(oldPassword);
+
+        if(!isPassWordCorrect){
+            throw new Error("Your old Password is Wrong");
         }
+        const newPassword = req.body?.newPassword;
+        if(!newPassword){
+            throw new Error("Enter the new Password as well")
+        }
+        user.password = await bcrypt.hash(newPassword,10);    
+        await user.save();
 
-        await UserModel.findByIdAndUpdate({_id:userId},data,{ runValidators:true })
-
-        res.send("Updated Sucessfuly")
+        res.send("Password Updated");
     }
     catch(err){
-        res.status(400).send("Error : "+ err.message);
+        res.status(400).send("ERROR : " + err.message)
     }
-    
 })
 
 module.exports = profileRouter;
