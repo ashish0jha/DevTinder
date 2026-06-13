@@ -8,9 +8,10 @@ const userAuth = async (req,res,next)=>{
             throw new Error("Invalid Token")
         }
 
-        const {_id} = await jwt.verify(token,"nexa0781@_tm/tm*()");
+        const {_id} = await jwt.verify(token,"devTinder07");
 
         const user =await UserModel.findById(_id);
+        
         if(!user){
             throw new Error("User does not exist");
         }

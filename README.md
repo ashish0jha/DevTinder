@@ -1,4 +1,4 @@
-<h1>Nexa ( Connect. Create. Belong. )</h1>
+# Devtinder
 
 ## 1. Initialization of Project
 
