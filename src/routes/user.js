@@ -69,6 +69,42 @@ userRouter.get("/user/connections",userAuth,async(req,res)=>{
     }
 })
 
+userRouter.get("/user/feed",userAuth, async (req, res) => {
+    try {
+        
+        const loggedInUser = req.user;
+
+        const page = req.query.page || 1;
+        let limit = req.query.limit || 10;
+        const skip = (page-1)*limit;
+
+        limit = limit>50 ? 50 : limit;
+
+        const connectionRequests = await ConnectionRequestSchema.find({
+            $or:[
+                {senderId:loggedInUser._id},
+                {receiverId : loggedInUser._id}
+            ]
+        }).select("senderId receiverId");
+
+        const hideUsersFromFeed = new Set();
+        connectionRequests.forEach(val => {
+            hideUsersFromFeed.add(val.senderId.toString());
+            hideUsersFromFeed.add(val.receiverId.toString());
+        });
+        const users = await UserModel.find({
+            $and:[
+                {_id:{$nin:Array.from(hideUsersFromFeed)}},
+                {_id:{$ne:loggedInUser._id}}
+            ]
+        }).select(SAFE_USER_DATA).skip(skip).limit(limit);
+
+        res.send(users)
+
+    } catch (err) {
+        res.status(400).send("Something is wrong : " +err.message);
+    }
+});
 
 userRouter.delete("/user", userAuth, async (req, res) => {
     try {
