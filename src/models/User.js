@@ -38,7 +38,8 @@ const userSchema = new mongoose.Schema({
     },
     age: {
         type: Number,
-        min: 18
+        min: 18,
+        max:100,
     },
     gender: {
         type: String,
@@ -61,7 +62,7 @@ const userSchema = new mongoose.Schema({
     about: {
         type: String,
         default: "Hey! , I am Using WhatsApp",
-        maxLength: 100,
+        maxLength: 500,
     },
     skills: {
         type: [String],

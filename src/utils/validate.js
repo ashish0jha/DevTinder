@@ -28,8 +28,6 @@ const isValidEditData = (req) => {
     );
     if (!isValidFields) {
         throw new Error("Invalid Input Fields")
-    } else if (req?.body?.skills.length>10) {
-       throw new Error("Skills can't More than 10")
     }
 };
 

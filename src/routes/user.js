@@ -24,15 +24,8 @@ userRouter.get("/user/requests/:state", userAuth, async (req, res) => {
             status: "Interested",
         }).populate("senderId", SAFE_USER_DATA)
             .populate("receiverId", SAFE_USER_DATA);
-
-        const finalDataTosendFrontEnd = totalRequests.map((row)=>{
-            if(state === "sent"){
-                return row.receiverId;
-            }
-            return row.senderId;
-        })
-
-        res.send(finalDataTosendFrontEnd);
+        
+        res.send(totalRequests);
     } catch (err) {
         res
             .status(400)
@@ -62,7 +55,7 @@ userRouter.get("/user/connections",userAuth,async(req,res)=>{
 
             res.json({
                 message:`You have total connection of ${data.length}`,
-                data
+                data:data
             })
     }catch(err){
         res.status(400).send("Error : the error is : " + err.message);
@@ -105,6 +98,24 @@ userRouter.get("/user/feed",userAuth, async (req, res) => {
         res.status(400).send("Something is wrong : " +err.message);
     }
 });
+
+userRouter.delete("/user/remove/:id",userAuth,async(req,res)=>{
+    try{
+        const sender = req.user._id;
+        const receiver = req.params.id;
+
+        await ConnectionRequestSchema.findOneAndDelete({
+            $or:[
+                {senderId:sender , receiverId: receiver , status:"Accepted"},
+                {senderId:receiver, receiverId:sender, status:"Accepted"}
+            ]
+        })
+        res.send("Deleted sucessfully")
+    }
+    catch(err) {
+        res.status(400).send("ERROR : " + err.message)
+    }
+})
 
 userRouter.delete("/user", userAuth, async (req, res) => {
     try {

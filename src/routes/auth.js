@@ -1,7 +1,6 @@
 const express = require("express");
 const authRouter = express.Router();
 
-
 const { validateSignUpData } = require('../utils/validate');
 const bcrypt = require("bcrypt");
 const {UserModel} = require("../models/User");
@@ -30,7 +29,7 @@ authRouter.post("/signup",async (req,res)=>{
         res.cookie("token",token , {
             expires : new Date(Date.now() + 7*3600000)
         });
-        res.send("User Added SuccesfullY");
+        res.send(user);
     }
     catch(err){
         res.status(400).send("Error : "+ err.message)
@@ -39,6 +38,7 @@ authRouter.post("/signup",async (req,res)=>{
 
 authRouter.post("/login",async(req, res)=>{
     try{
+        
         const { emailId, password } = req.body;
         
         const user = await UserModel.findOne({ emailId : emailId });
@@ -56,7 +56,7 @@ authRouter.post("/login",async(req, res)=>{
                 expires : new Date(Date.now() + 7*3600000)
             });
 
-            res.send("User Logged In");
+            res.send(user);
         }else{
             throw new Error(" Invaid Credentials ");
         }

@@ -89,6 +89,16 @@ requestRouter.post("/request/review/:status/:requestId",userAuth,async (req,res)
     }
 })
 
+requestRouter.delete("/request/cancel/:_id",userAuth,async (req,res)=>{
+    try{
+        await conncetionRequestSchema.findOneAndDelete({senderId:req.user._id,receiverId:req.params._id});
+        res.send("Request Deleted Successfully");
+
+    }
+    catch(err){
+        res.status(400).removeListener.send("ERROR : "+ err.message);
+    }
+})
 
 
 module.exports = requestRouter;
